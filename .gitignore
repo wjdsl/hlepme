@@ -1,0 +1,62 @@
+# Local Python environments and caches
+.venv/
+venv/
+env/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.nox/
+*.py[cod]
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+
+# Environment files and local credentials (at every directory level)
+.env
+.env.*
+*.env
+.envrc
+.npmrc
+.pypirc
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+credentials.*.json
+secrets.json
+secrets.*
+
+# SQLite data, sidecars, and backups: never commit personal records
+*.[dD][bB]
+*.[dD][bB]-*
+*.[dD][bB].*
+*.[sS][qQ][lL][iI][tT][eE]
+*.[sS][qQ][lL][iI][tT][eE]-*
+*.[sS][qQ][lL][iI][tT][eE].*
+*.[sS][qQ][lL][iI][tT][eE]3
+*.[sS][qQ][lL][iI][tT][eE]3-*
+*.[sS][qQ][lL][iI][tT][eE]3.*
+
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+*.tsbuildinfo
+*.log
+
+# Local editor, OS, and temporary files
+.DS_Store
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+*.tmp
+*.bak

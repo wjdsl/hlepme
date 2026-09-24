@@ -60,19 +60,17 @@ export default function App() {
 
   return <div className="layout">
     <aside className="sidebar">
-      <a className="brand" href="/" aria-label="혼잣말 홈"><span className="brand-icon">“</span>혼잣말<span className="version">V0.3</span></a>
+      <a className="brand" href="/" aria-label="helpme 홈"><span className="brand-icon">“</span>helpme<span className="version">V0.3</span></a>
       <nav className="navigation" aria-label="주 메뉴"><a href="#posts" className={page === 'posts' ? 'nav-active' : ''} aria-current={page === 'posts' ? 'page' : undefined}>☰ 나의 기록</a><a href="#medications" className={page === 'medications' ? 'nav-active' : ''} aria-current={page === 'medications' ? 'page' : undefined}>✚ 복용약</a></nav>
-      <p className="sidebar-note">잘 정리하지 않아도 괜찮아요.<br />지금 떠오른 말을 남겨 주세요.</p>
-      <span className="sidebar-footer">나를 위한 작은 기록</span>
     </aside>
     <main>
       {page === 'medications' ? <Medications /> : <>
-      <header><p className="eyebrow">MY LITTLE NOTES</p><h1>지금, 무슨 생각을 하나요?</h1><p>짧은 한마디도 충분해요. 편하게 남겨 보세요.</p></header>
+      <header><h1>기록</h1></header>
       <section className="composer" aria-label="새 혼잣말 작성">
         <form onSubmit={submit}>
-          <label htmlFor="content"><span className="avatar" aria-hidden="true">나</span> 오늘의 나에게</label>
-          <textarea id="content" placeholder="여기에 생각나는 말을 적어 주세요…" value={content} onChange={e => setContent(e.target.value)} disabled={saving} />
-          <div className="composer-footer"><span>어떤 말이든, 있는 그대로.</span><button className="primary" disabled={!content.trim() || saving || loading || !!loadError}>{saving ? '남기는 중…' : '기록 남기기'} <span aria-hidden="true">↗</span></button></div>
+          <label htmlFor="content" className="sr-only">기록 내용</label>
+          <textarea id="content" placeholder="무슨 생각 중?" value={content} onChange={e => setContent(e.target.value)} disabled={saving} />
+          <div className="composer-footer"><button className="primary" disabled={!content.trim() || saving || loading || !!loadError}>{saving ? '저장 중…' : '기록'} <span aria-hidden="true">↗</span></button></div>
         </form>
         {saveError && <p className="error" role="alert">{saveError}</p>}
       </section>
@@ -80,9 +78,8 @@ export default function App() {
       {view === 'timeline' && <p className="calendar-legend">최신순</p>}
       <p className="sr-only" role="status">{notice}</p>
       {view === 'calendar' && !loading && !loadError ? <Calendar posts={posts} onUpdate={update} onDelete={remove} /> : <section className="timeline" aria-label="혼잣말 타임라인" aria-busy={loading}>
-        {loading ? <p className="empty" role="status">기록을 불러오는 중…</p> : loadError ? <div className="empty"><p className="error" role="alert">{loadError}</p><button onClick={() => setReload(value => value + 1)}>다시 불러오기</button></div> : posts.length ? posts.map(post => <PostCard key={post.id} post={post} onUpdate={update} onDelete={remove} />) : <div className="empty"><span className="empty-mark" aria-hidden="true">“</span><h3>첫 번째 혼잣말을 기다리고 있어요</h3><p>오늘 있었던 일, 문득 떠오른 생각.<br />한 줄부터 시작해 보세요.</p></div>}
+        {loading ? <p className="empty" role="status">기록을 불러오는 중…</p> : loadError ? <div className="empty"><p className="error" role="alert">{loadError}</p><button onClick={() => setReload(value => value + 1)}>다시 불러오기</button></div> : posts.length ? posts.map(post => <PostCard key={post.id} post={post} onUpdate={update} onDelete={remove} />) : <div className="empty"><p>기록이 없습니다.</p></div>}
       </section>}
-      <footer>흘러가는 생각을, 조금씩 모아 두는 곳.</footer>
       </>}
     </main>
   </div>;

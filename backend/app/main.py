@@ -19,7 +19,7 @@ def create_app(database_url=None):
         finally:
             engine.dispose()
 
-    application = FastAPI(title="혼잣말", version="0.3.0", lifespan=lifespan)
+    application = FastAPI(title="helpme", version="0.3.0", lifespan=lifespan)
     application.include_router(router)
     application.include_router(visits_router)
     application.include_router(medications_router)

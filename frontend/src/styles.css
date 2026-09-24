@@ -28,6 +28,7 @@ textarea:focus { outline: 2px solid #8bab80; outline-offset: 2px; }
 .composer textarea { margin: 12px 0; }
 .composer-footer { border-top: 1px solid #f0f2ed; padding-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .composer-footer > span { font-size: 11px; color: #949c8d; }
+.composer-footer > button { margin-left: auto; }
 .primary { background: #416a52; color: white; font-size: 12px; font-weight: 500; padding: 10px 17px; }
 .primary:hover { background: #345743; }
 .primary span { margin-left: 8px; }

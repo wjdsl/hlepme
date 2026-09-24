@@ -30,11 +30,11 @@ async function visible(locator) { await locator.waitFor({ state: 'visible' }); }
     const [year, month, day] = today.split('-').map(Number);
     const token = `V03 브라우저 ${Date.now()}`;
     // These records predate opening the calendar, exercising reuse of existing Post data.
-    await page.getByLabel('오늘의 나에게').fill(`${token} 첫 기록`);
-    await page.getByRole('button', { name: '기록 남기기' }).click();
+    await page.getByLabel('기록 내용').fill(`${token} 첫 기록`);
+    await page.getByRole('button', { name: '기록', exact: true }).click();
     await visible(page.locator('.timeline').getByText(`${token} 첫 기록`, { exact: true }));
-    await page.getByLabel('오늘의 나에게').fill(`${token} 두번째 기록`);
-    await page.getByRole('button', { name: '기록 남기기' }).click();
+    await page.getByLabel('기록 내용').fill(`${token} 두번째 기록`);
+    await page.getByRole('button', { name: '기록', exact: true }).click();
     await visible(page.locator('.timeline').getByText(`${token} 두번째 기록`, { exact: true }));
     assert.equal(await page.locator('.timeline .post-content').first().textContent(), `${token} 두번째 기록`);
     passed('1. 기존 본문 전용 Post 작성 및 최신순 타임라인');

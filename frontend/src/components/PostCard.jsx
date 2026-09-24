@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { seoulTime } from '../calendar.js';
 
 const dateFormat = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Seoul' });
 
-export default function PostCard({ post, onUpdate, onDelete }) {
+export default function PostCard({ post, onUpdate, onDelete, timeOnly = false }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(post.content);
   const [busy, setBusy] = useState(false);
@@ -30,7 +31,7 @@ export default function PostCard({ post, onUpdate, onDelete }) {
 
   return <article className="post">
     <div className="post-meta"><span className="avatar" aria-hidden="true">나</span><strong>나의 혼잣말</strong>
-      <time dateTime={post.created_at}>{dateFormat.format(new Date(post.created_at))}</time>
+      <time dateTime={post.created_at}>{timeOnly ? seoulTime(post.created_at) : dateFormat.format(new Date(post.created_at))}</time>
       {post.updated_at !== post.created_at && <span className="edited">수정됨</span>}
     </div>
     {editing ? <form onSubmit={save}>

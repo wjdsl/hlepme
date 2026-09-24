@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.date_range import date_range
 from app.db.session import get_session
 from app.repositories import posts
 from app.schemas.post import PostRead, PostWrite
@@ -23,8 +24,8 @@ def create_post(payload: PostWrite, session: Session = Depends(get_session)):
 
 
 @router.get("", response_model=List[PostRead])
-def list_posts(session: Session = Depends(get_session)):
-    return posts.list_posts(session)
+def list_posts(bounds=Depends(date_range), session: Session = Depends(get_session)):
+    return posts.list_posts(session, bounds)
 
 
 @router.get("/{post_id}", response_model=PostRead)

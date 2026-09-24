@@ -175,3 +175,87 @@ PATCH에서는 변경할 필드만 전송합니다. `scheduled_times`는 활성 
 알림 권한·재예약 정책을 검토할 수 있습니다.
 
 중복 삽입 구현 참고: [SQLAlchemy SQLite ON CONFLICT](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html#insert-on-conflict-upsert).
+
+## V0.3 기록 달력과 진료 일정
+
+나의 기록에서 **타임라인 / 달력**을 전환합니다. 본문만 작성하는 Post 입력은 그대로입니다.
+달력은 서울 날짜 기준으로 작성 건수와 진료 여부를 함께 표시합니다. 이전/다음 달, 오늘 이동,
+날짜 선택을 지원하며 선택한 날짜의 Post는 작성 시간순으로 표시하고 기존 수정·삭제를 제공합니다.
+`+ 진료 일정`은 선택한 날짜와 기본 제목 `병원 진료`로 시작합니다. 날짜·시간·제목과 선택 메모를
+저장하면 달력에 즉시 반영되며 수정·삭제할 수 있습니다. 알림과 AI/LLM 호출은 없습니다.
+
+### API
+
+| 메서드 | 경로 | 동작 |
+| --- | --- | --- |
+| POST | `/api/visits` | 진료 생성, 201 |
+| GET | `/api/visits` | 전체 또는 날짜 범위 조회, 예정 시각·id 오름차순 |
+| GET | `/api/visits/{id}` | 단일 조회 |
+| PATCH | `/api/visits/{id}` | 전달한 필드만 수정 |
+| DELETE | `/api/visits/{id}` | 삭제, 204 |
+| GET | `/api/posts?start_date=2026-09-24&end_date=2026-09-24` | 기존 Post의 서울 날짜별 조회 |
+
+Visit 생성 예시:
+
+```json
+{
+  "scheduled_at": "2026-10-08T09:30:00+09:00",
+  "title": "병원 진료",
+  "memo": "진료 때 물어볼 내용"
+}
+```
+
+- `title` 생략 시 `병원 진료`, 공백 제목은 422, 최대 200자입니다. `memo`는 생략·null 허용이며
+  PATCH에 `memo: null`을 보내면 지워집니다. `scheduled_at`과 `title`의 명시적 null은 거부합니다.
+- 예정 시각은 timezone을 포함해야 합니다. UTC `Z` 또는 `+09:00` 등을 허용하고 DB에는 UTC로
+  정규화해 저장합니다. 응답의 세 timestamp는 UTC `Z`를 포함합니다. 없는 id는 404입니다.
+- Post와 Visit의 목록은 선택적으로 `start_date`, `end_date` (`YYYY-MM-DD`)를 받습니다.
+  **시작일과 종료일 모두 포함**하며 하나만 주면 반대쪽은 제한하지 않습니다. 역전 범위·잘못된 날짜는 422입니다.
+  예를 들어 서울 9월 24일은 UTC `[9월 23일 15:00, 9월 24일 15:00)`로 조회합니다.
+- Post의 기준은 `created_at`, Visit의 기준은 `scheduled_at`입니다. Post 수정으로 작성일은 바뀌지 않습니다.
+  쿼리가 없는 Post 목록은 기존의 최신순입니다. 달력 날짜별 목록만 화면에서 시간순으로 정렬합니다.
+- 현재 달력은 기존 전체 Post 목록과 Visit 전체 목록으로 집계합니다. 날짜별 Post 복사본이나
+  달력 전용 영속 데이터는 생성하지 않습니다. 데이터가 커지면 추가한 기간 API로 조회 범위를 줄일 수 있습니다.
+
+### 데이터 보존과 향후 브리핑
+
+기존 `posts`, `medications`, `medication_schedules`, `medication_logs` 테이블을 변경하지 않습니다.
+앱 시작 시 기존 `Base.metadata.create_all`이 누락된 `visits` 테이블과 `scheduled_at` 인덱스만
+추가합니다. 데이터 초기화·DROP·기존 행 재작성은 없습니다. 실행 중인 개발 서버가 자동 재시작되면
+그 시점에 테이블이 추가됩니다. 별도 수동 DB 초기화는 필요하지 않습니다.
+
+`visits`: `id` PK, `scheduled_at` NOT NULL/INDEX, `title` NOT NULL, `memo` NULL 허용,
+`created_at` NOT NULL, `updated_at` NOT NULL. 세 시각 모두 기존 테이블과 같은 UTC naive 저장 규칙입니다.
+
+향후 진료 브리핑에서는 대상 Visit보다 `scheduled_at`이 앞선 직전 Visit을 구한 뒤,
+`previous.scheduled_at < Post.created_at <= target.scheduled_at` 같은 명시적인 구간으로 조회할 수 있습니다.
+날짜 전체를 포함하려면 이번에 추가한 서울 날짜 경계 규칙을 사용합니다. MedicationLog는
+`scheduled_date`(서울 달력 날짜), `scheduled_at`(UTC 예정 시각), `taken_at`(UTC 실제 복용 시각)을
+이미 분리해 저장하므로 예정 기준/실제 복용 기준을 구분해 조회할 수 있습니다.
+이번 버전은 브리핑 API, 과거 복약 기간 API, 요약 또는 LLM 호출을 추가하지 않습니다.
+
+### 테스트 재현
+
+- Backend: `cd backend` 후 `.venv/bin/python -m pytest tests -q` (모든 테스트가 pytest 임시 DB 사용).
+- Production build: `cd frontend` 후 `npm run build`.
+- 브라우저 자동화: `frontend/tests/browser-v03.cjs`. Chrome과 Playwright가 설치되어 있어야 합니다.
+  **새로운 빈 임시 DB**로 API 서버를 8013 포트에 실행하고 preview 프록시를 해당 서버로 연결합니다.
+  개인 DB를 사용하는 기본 8000 서버로 이 테스트를 실행하지 마세요.
+
+```sh
+# backend 디렉터리: mktemp로 매번 새 디렉터리를 만듭니다.
+V03_TEST_DIR=$(mktemp -d /tmp/honjatmal-v03-XXXXXX)
+DATABASE_URL="sqlite:///$V03_TEST_DIR/browser.db" .venv/bin/uvicorn app.main:app --port 8013
+
+# 다른 터미널, frontend 디렉터리
+API_PROXY_TARGET=http://127.0.0.1:8013 npm run preview -- --host 127.0.0.1 --port 4173 --strictPort
+
+# 프로젝트 루트에서 Playwright 설치 위치를 NODE_PATH에 지정한 환경으로 실행
+V03_TEST_BASE_URL=http://127.0.0.1:4173 V03_ISOLATED_DB=1 node frontend/tests/browser-v03.cjs
+```
+
+브라우저 테스트는 미국 시간대에서 서울 날짜 표시를 검증하며 desktop 및 390px 스크린샷과
+결과 JSON을 `V03_ARTIFACT_DIR` (기본 `/private/tmp/honjatmal-v03-browser`)에 저장합니다.
+전체 시나리오를 재실행할 때에는 새로운 빈 테스트 DB로 서버를 다시 시작합니다.
+
+기간 쿼리 검증 참고: [FastAPI Query Parameters](https://fastapi.tiangolo.com/tutorial/query-params-str-validations/).

@@ -42,3 +42,23 @@ export const medicationsApi = {
   take: id => medicationRequest(`medication-logs/${id}/take`, { method: 'PATCH' }),
   skip: id => medicationRequest(`medication-logs/${id}/skip`, { method: 'PATCH' }),
 };
+
+async function visitRequest(path = '', options = {}) {
+  const response = await fetch(`/api/visits${path}`, {
+    ...options, headers: { 'Content-Type': 'application/json', ...options.headers },
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(typeof body.detail === 'string' && body.detail !== 'Not Found' ? body.detail
+      : response.status === 422 ? '진료 날짜, 시간, 제목을 확인해 주세요.'
+      : '진료 일정을 저장하거나 불러오지 못했습니다. 다시 시도해 주세요.');
+  }
+  return response.status === 204 ? null : response.json();
+}
+
+export const visitsApi = {
+  list: signal => visitRequest('', { signal }),
+  create: payload => visitRequest('', { method: 'POST', body: JSON.stringify(payload) }),
+  update: (id, payload) => visitRequest(`/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  remove: id => visitRequest(`/${id}`, { method: 'DELETE' }),
+};

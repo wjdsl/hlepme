@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const dateFormat = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short' });
+const dateFormat = new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Seoul' });
 
 export default function PostCard({ post, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false);

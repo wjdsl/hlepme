@@ -64,3 +64,26 @@ footer { text-align: center; color: #a0a695; font-size: 10px; padding: 32px 0 0;
   .post-meta { gap: 6px; }
   .post-meta time { font-size: 10px; }
 }
+.navigation { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-top: 38px; }
+.navigation a { display: block; margin: 0; padding: 12px 18px; border-radius: 10px; text-decoration: none; color: #526356; font-size: 14px; }
+.navigation a:hover { background: #eef2ec; }
+.medication-form { margin-bottom: 20px; }
+.medication-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.medication-form label { margin-top: 14px; margin-bottom: 6px; }
+.medication-form input { width: 100%; min-width: 0; min-height: 44px; border: 1px solid #dce3d6; border-radius: 8px; padding: 10px; font: inherit; color: #334536; background: white; }
+.medication-form input:focus { outline: 2px solid #8bab80; }
+.time-input { display: flex; gap: 8px; margin-bottom: 12px; }
+.med-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 12px; }
+.medication-card { overflow-wrap: anywhere; }
+.medication-card h3 { margin: 6px 0; font-size: 16px; }
+.medication-card h3 span { font-weight: 400; color: #75826f; }
+.medication-card p { font-size: 13px; white-space: pre-wrap; }
+.medication-card > time { font-size: 14px; color: #416a52; font-weight: 600; }
+.med-status, .med-notice { color: #6a7862; font-size: 12px; }
+.med-status.taken { color: #416a52; font-weight: 600; }
+.med-hint { font-size: 12px; color: #75826f; }
+@media (max-width: 720px) {
+  .navigation { flex-direction: row; margin-top: 16px; }
+  .navigation a { flex: 1; text-align: center; }
+  .medication-form input { font-size: 16px; }
+}

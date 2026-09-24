@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.posts import router
+from app.api.medications import router as medications_router
 from app.db.session import Base, make_engine
 
 
@@ -17,8 +18,9 @@ def create_app(database_url=None):
         finally:
             engine.dispose()
 
-    application = FastAPI(title="혼잣말", version="0.1.0", lifespan=lifespan)
+    application = FastAPI(title="혼잣말", version="0.2.0", lifespan=lifespan)
     application.include_router(router)
+    application.include_router(medications_router)
     return application
 
 

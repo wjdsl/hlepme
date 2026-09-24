@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 
 from sqlalchemy import DateTime, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -6,9 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.session import Base
 
 
-def utc_now():
-    # SQLite stores naive datetimes; all stored values are UTC.
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+from app.db.time import utc_now
 
 
 class Post(Base):

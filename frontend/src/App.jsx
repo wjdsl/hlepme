@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { postsApi } from './api.js';
 import PostCard from './components/PostCard.jsx';
+import Medications from './components/Medications.jsx';
 
 export default function App() {
+  const [page, setPage] = useState(() => location.hash === '#medications' ? 'medications' : 'posts');
+  useEffect(() => {
+    const navigate = () => setPage(location.hash === '#medications' ? 'medications' : 'posts');
+    window.addEventListener('hashchange', navigate);
+    return () => window.removeEventListener('hashchange', navigate);
+  }, []);
   const [posts, setPosts] = useState([]);
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -51,12 +58,13 @@ export default function App() {
 
   return <div className="layout">
     <aside className="sidebar">
-      <a className="brand" href="/" aria-label="혼잣말 홈"><span className="brand-icon">“</span>혼잣말<span className="version">V0.1</span></a>
-      <div className="nav-active"><span aria-hidden="true">☰</span> 나의 기록</div>
+      <a className="brand" href="/" aria-label="혼잣말 홈"><span className="brand-icon">“</span>혼잣말<span className="version">V0.2</span></a>
+      <nav className="navigation" aria-label="주 메뉴"><a href="#posts" className={page === 'posts' ? 'nav-active' : ''} aria-current={page === 'posts' ? 'page' : undefined}>☰ 나의 기록</a><a href="#medications" className={page === 'medications' ? 'nav-active' : ''} aria-current={page === 'medications' ? 'page' : undefined}>✚ 복용약</a></nav>
       <p className="sidebar-note">잘 정리하지 않아도 괜찮아요.<br />지금 떠오른 말을 남겨 주세요.</p>
       <span className="sidebar-footer">나를 위한 작은 기록</span>
     </aside>
     <main>
+      {page === 'medications' ? <Medications /> : <>
       <header><p className="eyebrow">MY LITTLE NOTES</p><h1>지금, 무슨 생각을 하나요?</h1><p>짧은 한마디도 충분해요. 편하게 남겨 보세요.</p></header>
       <section className="composer" aria-label="새 혼잣말 작성">
         <form onSubmit={submit}>
@@ -72,6 +80,7 @@ export default function App() {
         {loading ? <p className="empty" role="status">기록을 불러오는 중…</p> : loadError ? <div className="empty"><p className="error" role="alert">{loadError}</p><button onClick={() => setReload(value => value + 1)}>다시 불러오기</button></div> : posts.length ? posts.map(post => <PostCard key={post.id} post={post} onUpdate={update} onDelete={remove} />) : <div className="empty"><span className="empty-mark" aria-hidden="true">“</span><h3>첫 번째 혼잣말을 기다리고 있어요</h3><p>오늘 있었던 일, 문득 떠오른 생각.<br />한 줄부터 시작해 보세요.</p></div>}
       </section>
       <footer>흘러가는 생각을, 조금씩 모아 두는 곳.</footer>
+      </>}
     </main>
   </div>;
 }

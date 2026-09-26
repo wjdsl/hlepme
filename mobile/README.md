@@ -1,6 +1,6 @@
-# HelpMe Mobile V0.4A
+# HelpMe Mobile V0.4B-1
 
-React Native + Expo SDK 57의 **기록 화면만** 구현한 독립 앱입니다. Gemini 코드는 시각적 참고만 했으며 HTML, Tailwind, 기존 웹 코드는 사용하지 않았습니다. 달력·복용약·수정·삭제는 이번 범위에 포함하지 않습니다.
+React Native + Expo SDK 57의 기록·달력 앱입니다. Expo Router 하단 탭으로 이동하며 FastAPI와 연결하지 않습니다. 복용약·진료·AI·수정·삭제는 이번 범위에 포함하지 않습니다.
 
 ## iPhone + Expo Go 실행
 
@@ -9,7 +9,7 @@ Node.js 24 LTS 권장. 터미널에서:
 ```sh
 cd /Users/jeungeun/Desktop/helpme/mobile
 npm ci
-npm start
+npm start -- --clear
 ```
 
 1. iPhone에 SDK 57을 지원하는 최신 Expo Go를 설치합니다: https://expo.dev/go
@@ -82,3 +82,38 @@ npx expo start
 `--clear`는 Metro 변환 캐시를 지우는 옵션이므로 CLI 파일 읽기 지연 자체를 해결하지 않습니다.
 Desktop 파일 공급자 지연이 계속된다면 프로젝트를 동기화되지 않는 로컬 개발 폴더로
 옮기는 것을 고려하세요. Expo slug와 SQLite 파일 이름을 바꾸지 마세요.
+
+
+## V0.4B-1 달력
+
+- `src/app/`: Expo Router 기록·달력 탭. `RecordsProvider.tsx`: 두 화면의 공유 기록 상태.
+- `src/screens/`: 기록 입력/목록, 월간 달력/선택 날짜 목록. `components/RecordRow.tsx`: 공통 시간·내용 표시.
+- `src/calendar.ts`: 월 이동, 달력 배치, 저장된 로컬 날짜별 그룹. 오늘은 테두리, 선택 날짜는 파란 배경, 기록이 있는 날짜는 작은 점으로 표시합니다.
+- 이전/다음 달 이동 시 해당 월 1일을 선택합니다. 날짜 선택과 월 이동은 메모리 상태이며 앱 재시작 시 오늘부터 표시합니다.
+- V0.4A의 DB 파일명, 기본 저장 디렉터리, 스키마 버전 1, 저장 SQL을 유지합니다. migration·삭제·재생성은 없습니다. 시간대가 바뀌어도 기록은 작성 당시 저장한 로컬 날짜·시간에 표시합니다.
+
+### V0.4B-1 iPhone 확인
+
+1. 기존과 같은 프로젝트를 열어 V0.4A 기록이 남아 있는지 확인합니다.
+2. 빈 입력 저장 방지, 새 기록 저장, 시간·줄바꿈·날짜별 목록을 확인합니다.
+3. 기록 탭에 입력 중인 내용을 둔 채 달력에 갔다 돌아와 입력이 유지되는지 확인합니다.
+4. 새 기록 저장 후 달력의 해당 날짜 점과 날짜 선택 시 시간·내용을 확인합니다.
+5. 빈 날짜, 오늘 테두리, 선택 표시, 이전/다음 달 및 연도 경계 이동을 확인합니다.
+6. Expo Go를 완전히 종료하고 같은 프로젝트를 다시 열어 기존/새 기록이 유지되는지 확인합니다.
+7. 키보드, 하단 홈 영역, 긴 기록 스크롤, 큰 글자 설정을 확인합니다. 가능하면 자정 전후 저장 날짜도 확인합니다.
+
+Node 테스트에는 기존 SQLite 검사 외에 V0.4A DB 보존/ID 연속성, 윤년/요일/연도 경계, 날짜별 정렬, 서로 다른 시간대의 자정 전후 저장 검사가 포함됩니다. 실제 Expo Go UI와 네이티브 SQLite 브리지는 iPhone에서 확인해야 합니다.
+
+
+### 이번 구현 검증 결과
+
+- TypeScript, ESLint, SQLite/달력 테스트 8개 통과.
+- iOS Hermes 번들 생성 성공 (동일 소스의 임시 로컬 폴더에서 검증).
+- Expo Doctor: 20/21 통과. 기존 Expo 57.0.24에 대해 57.0.25 패치 권고가 남습니다.
+- Desktop의 기존 의존성 파일 읽기 지연으로 임시 폴더에 의존성을 설치해 검증했습니다. SDK 호환 React DOM/Reanimated/Worklets 버전을 명시했습니다.
+- 실제 iPhone UI·네이티브 SQLite 브리지 검증은 위 인수 테스트로 확인해야 합니다.
+
+
+### 로컬 환경 제한
+
+이번 환경에서 기존 `mobile/node_modules` 파일 접근과 폴더 이동, Git diff 검사가 장시간 멈춰 해당 프로세스를 중단했습니다. 검증한 package.json/package-lock.json 및 소스는 반영됐으나 기존 node_modules의 교체는 완료되지 않았습니다. 실행 전 `mobile`에서 `npm ci`로 lockfile 의존성을 맞추세요. 이 작업은 iPhone SQLite 데이터와 무관합니다. 임시 검증 폴더는 `/private/tmp/helpme-v04b-VwRXBb`입니다.

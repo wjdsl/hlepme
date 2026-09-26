@@ -10,7 +10,7 @@ function adapter(db) {return {
  execAsync:async sql=>db.exec(sql),
  getFirstAsync:async sql=>db.prepare(sql).get(),
  getAllAsync:async sql=>db.prepare(sql).all(),
- runAsync:async (sql,...args)=>db.prepare(sql).run(...args),
+ runAsync:async (sql,...args)=>{const result=db.prepare(sql).run(...args);return {changes:result.changes,lastInsertRowId:Number(result.lastInsertRowid)};},
  withTransactionAsync:async fn=>{db.exec('BEGIN');try{await fn();db.exec('COMMIT');}catch(e){db.exec('ROLLBACK');throw e;}}
 };}
 test('records survive close/reopen and initialization; text and ordering preserved',async()=>{
@@ -33,4 +33,19 @@ test('local date labels handle year boundaries',()=>{
 });
 test('failed writes propagate without returning a saved record',async()=>{
  await assert.rejects(addRecord({runAsync:async()=>{throw new Error('disk full');}},'입력 유지'),/disk full/);
+});
+test('existing V0.4A v1 database retains rows, IDs and sequence after calendar upgrade',async()=>{
+ const raw=new DatabaseSync(':memory:'); const db=adapter(raw);
+ try {
+  raw.exec(`CREATE TABLE records (id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT NOT NULL CHECK(length(trim(text)) > 0), created_at INTEGER NOT NULL, local_date TEXT NOT NULL, local_time TEXT NOT NULL);
+   PRAGMA user_version=1;
+   INSERT INTO records VALUES (42, '기존 기록', 1780000000000, '2026-05-29', '00:06');`);
+  const before=await loadRecords(db);
+  await initialize(db); await initialize(db);
+  assert.deepEqual(await loadRecords(db),before);
+  const added=await addRecord(db,'추가 기록',new Date(2026,8,25,0,1));
+  assert.equal(added.id,43);
+  assert.equal((await loadRecords(db)).length,2);
+  assert.equal(raw.prepare('PRAGMA user_version').get().user_version,1);
+ }finally{raw.close();}
 });
